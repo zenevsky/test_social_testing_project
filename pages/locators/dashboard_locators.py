@@ -1,0 +1,1 @@
+dashboard_tab_header = 'a[data-menu-id="dashboard"]'
