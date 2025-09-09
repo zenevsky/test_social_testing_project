@@ -23,44 +23,42 @@ jobs:
     runs-on: ubuntu-latest
     name: Download history
     steps:
-      - name: setup Python
-        uses: actions/setup-python@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download allure-results history (if exists)
+        uses: actions/download-artifact@v4
         with:
-          python-version: "3.10"
-      - run: >
-          ARTIFACT_ID=$(curl -L 
-          -H "Accept: application/vnd.github+json" 
-          -H "X-GitHub-Api-Version: 2022-11-28" 
-          "https://api.github.com/repos/zenevsky/api_testing_project/actions/artifacts?name=allure-results" 
-          | python -c "import sys, json; print(json.load(sys.stdin)['artifacts'][0]['id']);") 
-          &&
-          curl -L 
-          -H "Accept: application/vnd.github+json" 
-          -H "Authorization: Bearer ${{ secrets.TOKEN }}" 
-          -H "X-GitHub-Api-Version: 2022-11-28" 
-          https://api.github.com/repos/zenevsky/api_testing_project/actions/artifacts/$ARTIFACT_ID/zip 
-          -o artifacts.zip &&
-          REPORT_ID=$(curl -L 
-          -H "Accept: application/vnd.github+json" 
-          -H "X-GitHub-Api-Version: 2022-11-28" 
-          "https://api.github.com/repos/zenevsky/api_testing_project/actions/artifacts?name=github-pages" 
-          | python -c "import sys, json; print(json.load(sys.stdin)['artifacts'][0]['id']);") 
-          &&
-          curl -L 
-          -H "Accept: application/vnd.github+json" 
-          -H "Authorization: Bearer ${{ secrets.TOKEN }}" 
-          -H "X-GitHub-Api-Version: 2022-11-28" 
-          https://api.github.com/repos/zenevsky/api_testing_project/actions/artifacts/$REPORT_ID/zip 
-          -o pages.zip
-      - run: mkdir allure-results && unzip artifacts.zip -d allure-results
-      - run: mkdir old_pages pages_history && unzip pages.zip -d old_pages && tar -xvf old_pages/artifact.tar -C pages_history
-      - run: cp pages_history/history/* allure-results && cp -r pages_history/history allure-results
+          name: allure-results
+          path: allure-results
+        continue-on-error: true
+
+      - name: Download previous pages (if exists)
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: pages_history
+        continue-on-error: true
+
+      - name: Restore history
+        run: |
+          if [ -d "pages_history" ]; then
+            echo "Restoring history from previous report..."
+            tar -xvf pages_history/artifact.tar -C pages_history
+            if [ -d "pages_history/history" ]; then
+              mkdir -p allure-results
+              cp -r pages_history/history allure-results/
+              cp pages_history/history/* allure-results/ || true
+            fi
+          else
+            echo "No previous history found, skipping."
+          fi
+
       - name: Store allure history
         uses: actions/upload-artifact@v4
         with:
           name: allure-results
-          path:
-            allure-results
+          path: allure-results
           retention-days: 1
 
   run-tests:
@@ -70,35 +68,48 @@ jobs:
     steps:
       - name: Checkout autotests
         uses: actions/checkout@v4
+
       - name: Set up Python environment
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: run all tests
+
+      - name: Run all tests
         if: "github.event.inputs.deployment_target == 'All'"
         run: pytest --alluredir=allure-results
         continue-on-error: true
-      - name: run api tests
-        if: "github.event.inputs.deployment_target == 'API tests'"
+
+      - name: Run API tests
+        if: "github.event.inputs.deployment_target == 'API'"
         run: pytest -m api --alluredir=allure-results
         continue-on-error: true
-      - name: run ui tests
-        if: "github.event.inputs.deployment_target == 'UI tests'"
+
+      - name: Run UI tests
+        if: "github.event.inputs.deployment_target == 'UI'"
         run: pytest -m ui --alluredir=allure-results
         continue-on-error: true
+
       - name: Install Java
         uses: actions/setup-java@v4
         with:
           distribution: 'microsoft'
           java-version: '21'
+
       - name: Install Allure
-        run: sudo wget https://github.com/allure-framework/allure2/releases/download/2.34.0/allure-2.34.0.tgz && sudo tar -zxvf allure-2.34.0.tgz -C /opt/ && sudo ln -s /opt/allure-2.34.0/bin/allure /usr/bin/allure
+        run: |
+          wget https://github.com/allure-framework/allure2/releases/download/2.34.0/allure-2.34.0.tgz
+          sudo tar -zxvf allure-2.34.0.tgz -C /opt/
+          sudo ln -s /opt/allure-2.34.0/bin/allure /usr/bin/allure
+
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v4
+
       - name: Generate report
         run: allure generate -c allure-results -o _site
+
       - name: Save allure report
         uses: actions/upload-artifact@v4
         with:
@@ -113,8 +124,12 @@ jobs:
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
