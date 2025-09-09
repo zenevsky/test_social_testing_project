@@ -31,11 +31,11 @@ jobs:
         with:
           name: github-pages
           path: pages_history
-        continue-on-error: true
+          if-no-files-found: ignore
 
       - name: Restore history
         run: |
-          if [ -d "pages_history" ]; then
+          if [ -f "pages_history/artifact.tar" ]; then
             echo "Restoring history from previous report..."
             tar -xvf pages_history/artifact.tar -C pages_history
             if [ -d "pages_history/history" ]; then
@@ -49,8 +49,9 @@ jobs:
       - name: Save restored history for next job
         uses: actions/upload-artifact@v4
         with:
-          name: allure-history
+          name: allure-results
           path: allure-results
+          if-no-files-found: ignore
           retention-days: 1
 
   run-tests:
@@ -76,9 +77,9 @@ jobs:
       - name: Download history from previous job
         uses: actions/download-artifact@v4
         with:
-          name: allure-history
+          name: allure-results
           path: allure-results
-        continue-on-error: true
+          if-no-files-found: ignore
 
       - name: Run all tests
         if: "github.event.inputs.deployment_target == 'All'"
@@ -115,17 +116,11 @@ jobs:
 
       - name: Generate report
         run: |
-          if [ -d "allure-results" ]; then
-            echo "Generating Allure report..."
-            allure generate -c allure-results -o _site
-            # Копируем историю, если она есть
-            if [ -d "allure-results/history" ]; then
-              cp -r allure-results/history _site/ || true
-            fi
-          else
-            echo "No allure-results found, generating empty report..."
-            mkdir -p _site
-            echo "<html><body><h2>No test results found</h2></body></html>" > _site/index.html
+          echo "Generating Allure report..."
+          allure generate -c allure-results -o _site || true
+          if [ -d "allure-results/history" ]; then
+            mkdir -p _site/history
+            cp -r allure-results/history/* _site/history/ || true
           fi
 
       - name: Save allure report
