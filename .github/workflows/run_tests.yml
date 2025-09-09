@@ -23,35 +23,42 @@ jobs:
     runs-on: ubuntu-latest
     name: Download history
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download previous pages (if exists)
-        uses: actions/download-artifact@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
-          name: github-pages
-          path: pages_history
-          if-no-files-found: ignore
+          python-version: "3.10"
 
-      - name: Restore history
-        run: |
-          if [ -f "pages_history/artifact.tar" ]; then
-            echo "Restoring history from previous report..."
-            tar -xvf pages_history/artifact.tar -C pages_history
-            if [ -d "pages_history/history" ]; then
-              mkdir -p allure-results
-              cp -r pages_history/history allure-results/
-            fi
-          else
-            echo "No previous history found, skipping."
-          fi
+      - run: >
+          ARTIFACT_ID=$(curl -L -H "Accept: application/vnd.github+json"
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"
+          -H "X-GitHub-Api-Version: 2022-11-28"
+          "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts?name=allure-results"
+          | python -c "import sys, json; print(json.load(sys.stdin)['artifacts'][0]['id']);") &&
+          curl -L -H "Accept: application/vnd.github+json"
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"
+          -H "X-GitHub-Api-Version: 2022-11-28"
+          https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts/$ARTIFACT_ID/zip
+          -o artifacts.zip &&
+          REPORT_ID=$(curl -L -H "Accept: application/vnd.github+json"
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"
+          -H "X-GitHub-Api-Version: 2022-11-28"
+          "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts?name=github-pages"
+          | python -c "import sys, json; print(json.load(sys.stdin)['artifacts'][0]['id']);") &&
+          curl -L -H "Accept: application/vnd.github+json"
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"
+          -H "X-GitHub-Api-Version: 2022-11-28"
+          https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts/$REPORT_ID/zip
+          -o pages.zip
 
-      - name: Save restored history for next job
+      - run: mkdir allure-results && unzip artifacts.zip -d allure-results
+      - run: mkdir old_pages pages_history && unzip pages.zip -d old_pages && tar -xvf old_pages/artifact.tar -C pages_history
+      - run: cp pages_history/history/* allure-results && cp -r pages_history/history allure-results
+
+      - name: Store allure history
         uses: actions/upload-artifact@v4
         with:
           name: allure-results
           path: allure-results
-          if-no-files-found: ignore
           retention-days: 1
 
   run-tests:
@@ -65,7 +72,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Install dependencies
         run: pip install -r requirements.txt
@@ -73,13 +80,6 @@ jobs:
       - name: Install Playwright browsers
         if: github.event.inputs.deployment_target != 'API'
         run: playwright install --with-deps
-
-      - name: Download history from previous job
-        uses: actions/download-artifact@v4
-        with:
-          name: allure-results
-          path: allure-results
-          if-no-files-found: ignore
 
       - name: Run all tests
         if: "github.event.inputs.deployment_target == 'All'"
@@ -105,23 +105,20 @@ jobs:
       - name: Install Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'microsoft'
-          java-version: '21'
+          distribution: microsoft
+          java-version: "21"
 
       - name: Install Allure
         run: |
-          wget https://github.com/allure-framework/allure2/releases/download/2.34.0/allure-2.34.0.tgz
+          sudo wget https://github.com/allure-framework/allure2/releases/download/2.34.0/allure-2.34.0.tgz
           sudo tar -zxvf allure-2.34.0.tgz -C /opt/
           sudo ln -s /opt/allure-2.34.0/bin/allure /usr/bin/allure
 
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v4
+
       - name: Generate report
-        run: |
-          echo "Generating Allure report..."
-          allure generate -c allure-results -o _site || true
-          if [ -d "allure-results/history" ]; then
-            mkdir -p _site/history
-            cp -r allure-results/history/* _site/history/ || true
-          fi
+        run: allure generate -c allure-results -o _site
 
       - name: Save allure report
         uses: actions/upload-artifact@v4
@@ -140,8 +137,6 @@ jobs:
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
