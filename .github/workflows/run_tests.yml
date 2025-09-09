@@ -7,10 +7,11 @@ on:
         description: Choose tests set
         required: true
         type: choice
-        default: smoke
+        default: All
         options:
-          - smoke
-          - all
+          - All
+          - UI
+          - API
 
 permissions:
   contents: read
@@ -76,10 +77,14 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: run all tests
+        if: "github.event.inputs.deployment_target == 'All'"
+        run: pytest --alluredir=allure-results
+        continue-on-error: true
+      - name: run api tests
         if: "github.event.inputs.deployment_target == 'API tests'"
         run: pytest -m api --alluredir=allure-results
         continue-on-error: true
-      - name: run all tests
+      - name: run ui tests
         if: "github.event.inputs.deployment_target == 'UI tests'"
         run: pytest -m ui --alluredir=allure-results
         continue-on-error: true
