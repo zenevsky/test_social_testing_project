@@ -29,32 +29,6 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Download artifacts
-        run: |
-          ARTIFACT_ID=$(curl -s -L -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-          "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts?name=allure-results" \
-          | python -c "import sys, json; a=json.load(sys.stdin)['artifacts']; print(a[0]['id'] if a else '')")
-
-          if [ -z "$ARTIFACT_ID" ]; then
-            echo "No allure-results artifact found, skipping download."
-          else
-            curl -L -H "Accept: application/vnd.github+json" \
-                 -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-                 "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts/$ARTIFACT_ID/zip" \
-                 -o artifacts.zip
-          fi
-
-          REPORT_ID=$(curl -s -L -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-          "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts?name=github-pages" \
-          | python -c "import sys, json; a=json.load(sys.stdin)['artifacts']; print(a[0]['id'] if a else '')")
-
-          curl -L -H "Accept: application/vnd.github+json" \
-               -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-               "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts/$REPORT_ID/zip" \
-               -o pages.zip
-
       - name: Prepare allure history
         run: |
           mkdir allure-results
