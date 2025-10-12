@@ -21,8 +21,8 @@ permissions:
 
 jobs:
   download-history:
-    runs-on: ubuntu-latest
     name: Download history
+    runs-on: ubuntu-latest
     steps:
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -31,62 +31,57 @@ jobs:
 
       - name: Download artifacts
         run: |
-          echo "Fetching allure-results artifact..."
-          RESPONSE=$(curl -s -L -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-            "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts?name=allure-results")
+          echo "=== Fetching allure-results artifact ==="
+          ALLURE_API_URL="https://api.github.com/repos/${{ github.repository }}/actions/artifacts?name=allure-results"
 
-          ARTIFACT_ID=$(echo "$RESPONSE" | python -c "import sys, json; data=json.load(sys.stdin); print(data.get('artifacts', [{}])[0].get('id', ''))")
+          ARTIFACT_ID=$(curl -s -L -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
+            "$ALLURE_API_URL" \
+            | python -c "import sys,json; d=json.load(sys.stdin); print((d.get('artifacts') or [{}])[0].get('id',''))")
 
           if [ -z "$ARTIFACT_ID" ]; then
-            echo "No allure-results artifact found, skipping download (likely first run)."
+            echo "No previous allure-results artifact found, will generate from scratch."
           else
-            echo "Found allure-results artifact with ID: $ARTIFACT_ID"
+            echo "Found artifact ID: $ARTIFACT_ID"
             curl -L -H "Accept: application/vnd.github+json" \
-                 -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-                 "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts/$ARTIFACT_ID/zip" \
-                 -o artifacts.zip
+              -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID/zip" \
+              -o artifacts.zip
           fi
 
-          echo "Fetching github-pages artifact..."
-          RESPONSE=$(curl -s -L -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-            "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts?name=github-pages")
+          echo "=== Fetching github-pages artifact ==="
+          REPORT_API_URL="https://api.github.com/repos/${{ github.repository }}/actions/artifacts?name=github-pages"
 
-          REPORT_ID=$(echo "$RESPONSE" | python -c "import sys, json; data=json.load(sys.stdin); print(data.get('artifacts', [{}])[0].get('id', ''))")
+          REPORT_ID=$(curl -s -L -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
+            "$REPORT_API_URL" \
+            | python -c "import sys,json; d=json.load(sys.stdin); print((d.get('artifacts') or [{}])[0].get('id',''))")
 
           if [ -z "$REPORT_ID" ]; then
-            echo "No github-pages artifact found, skipping download (likely first run)."
+            echo "No github-pages artifact found, will continue without history."
           else
-            echo "Found github-pages artifact with ID: $REPORT_ID"
+            echo "Found pages artifact ID: $REPORT_ID"
             curl -L -H "Accept: application/vnd.github+json" \
-                 -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-                 "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts/$REPORT_ID/zip" \
-                 -o pages.zip
-          fi
+              -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$REPORT_ID/zip" \
+              -o pages.zip
 
       - name: Prepare allure history
         run: |
-          mkdir allure-results
+          mkdir -p allure-results
           if [ -f artifacts.zip ]; then
-            echo "Unzipping allure-results..."
             unzip artifacts.zip -d allure-results
+          else
+            echo "No previous allure-results.zip found, starting fresh."
           fi
-          
-          mkdir old_pages pages_history
+
+          mkdir -p old_pages pages_history
           if [ -f pages.zip ]; then
-            echo "Unzipping github-pages..."
             unzip pages.zip -d old_pages
             tar -xvf old_pages/artifact.tar -C pages_history
-            if [ -d pages_history/history ]; then
-              echo "Restoring allure history..."
-              cp pages_history/history/* allure-results || true
-              cp -r pages_history/history allure-results || true
-            else
-              echo "No previous history found in pages artifact."
-            fi
+            cp -r pages_history/history allure-results/ || true
           else
-            echo "No pages.zip found, skipping history restore."
+            echo "No previous github-pages.zip found, skipping history import."
           fi
 
       - name: Store allure history
@@ -94,11 +89,11 @@ jobs:
         with:
           name: allure-results
           path: allure-results
-          retention-days: 10
-          
+          retention-days: 1
+
   run-tests:
-    runs-on: ubuntu-latest
     name: Run autotests
+    runs-on: ubuntu-latest
     needs: download-history
     steps:
       - name: Checkout autotests
@@ -117,21 +112,21 @@ jobs:
         run: playwright install --with-deps
 
       - name: Run all tests
-        if: "github.event.inputs.deployment_target == 'All'"
+        if: github.event.inputs.deployment_target == 'All'
         env:
           API_TOKEN: ${{ secrets.API_TOKEN }}
         run: pytest --alluredir=allure-results
         continue-on-error: true
 
       - name: Run API tests
-        if: "github.event.inputs.deployment_target == 'API'"
+        if: github.event.inputs.deployment_target == 'API'
         env:
           API_TOKEN: ${{ secrets.API_TOKEN }}
         run: pytest -m api --alluredir=allure-results
         continue-on-error: true
 
       - name: Run UI tests
-        if: "github.event.inputs.deployment_target == 'UI'"
+        if: github.event.inputs.deployment_target == 'UI'
         env:
           API_TOKEN: ${{ secrets.API_TOKEN }}
         run: pytest -m ui --alluredir=allure-results
