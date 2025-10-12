@@ -58,6 +58,9 @@ jobs:
       - name: Prepare allure history
         run: |
           mkdir -p allure-results
+          if [ -f artifacts.zip ]; then
+            unzip artifacts.zip -d allure-results
+          fi
 
           mkdir -p old_pages pages_history
           unzip pages.zip -d old_pages
