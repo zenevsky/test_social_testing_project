@@ -65,7 +65,7 @@ class Content(BaseModel):
     files: List[File]
 
 
-class Result(BaseModel):
+class Post(BaseModel):
     id: int
     message: str
     content: Content
@@ -82,4 +82,4 @@ class DataContainerModel(BaseModel):
     page: int
     pages: int
     links: Links
-    results: List[Result]
+    results: List[Post]
