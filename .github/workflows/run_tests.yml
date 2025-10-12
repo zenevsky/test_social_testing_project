@@ -34,10 +34,13 @@ jobs:
           echo "=== Fetching allure-results artifact ==="
           ALLURE_API_URL="https://api.github.com/repos/${{ github.repository }}/actions/artifacts?name=allure-results"
 
-          ARTIFACT_ID=$(curl -s -L -H "Accept: application/vnd.github+json" \
+          # Сохраняем ответ API в файл
+          curl -s -L -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-            "$ALLURE_API_URL" \
-            | python -c "import sys,json; d=json.load(sys.stdin); print((d.get('artifacts') or [{}])[0].get('id',''))")
+            "$ALLURE_API_URL" > response.json
+
+          # Получаем ID артефакта
+          ARTIFACT_ID=$(python3 -c "import json; d=json.load(open('response.json')); arts=d.get('artifacts',[]); print(arts[0]['id'] if arts else '')")
 
           if [ -z "$ARTIFACT_ID" ]; then
             echo "No previous allure-results artifact found, will generate from scratch."
@@ -52,10 +55,11 @@ jobs:
           echo "=== Fetching github-pages artifact ==="
           REPORT_API_URL="https://api.github.com/repos/${{ github.repository }}/actions/artifacts?name=github-pages"
 
-          REPORT_ID=$(curl -s -L -H "Accept: application/vnd.github+json" \
+          curl -s -L -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-            "$REPORT_API_URL" \
-            | python -c "import sys,json; d=json.load(sys.stdin); print((d.get('artifacts') or [{}])[0].get('id',''))")
+            "$REPORT_API_URL" > response_pages.json
+
+          REPORT_ID=$(python3 -c "import json; d=json.load(open('response_pages.json')); arts=d.get('artifacts',[]); print(arts[0]['id'] if arts else '')")
 
           if [ -z "$REPORT_ID" ]; then
             echo "No github-pages artifact found, will continue without history."
