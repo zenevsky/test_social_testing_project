@@ -58,15 +58,23 @@ jobs:
       - name: Prepare allure history
         run: |
           mkdir -p allure-results
+      
           if [ -f artifacts.zip ]; then
+            echo "Unzipping previous allure-results..."
             unzip artifacts.zip -d allure-results
+          else
+            echo "No previous allure-results.zip found, starting fresh."
           fi
-
+      
           mkdir -p old_pages pages_history
-          unzip pages.zip -d old_pages
-          tar -xvf old_pages/artifact.tar -C pages_history
-          cp pages_history/history/* allure-results
-          cp -r pages_history/history allure-results
+          if [ -f pages.zip ]; then
+            echo "Unzipping previous github-pages..."
+            unzip pages.zip -d old_pages
+            tar -xvf old_pages/artifact.tar -C pages_history
+            cp -r pages_history/history/* allure-results/ || true
+          else
+            echo "No previous github-pages.zip found, skipping history import."
+          fi
 
       - name: Store allure history
         uses: actions/upload-artifact@v4
