@@ -8,14 +8,15 @@ from endpoints.endpoint import Endpoint
 from endpoints.post.models.post_model import DataContainerModel
 
 
-class FindAllPosts(Endpoint):
+class FindAllPostsByContainer(Endpoint):
 
-    @allure.step('Run "Find all posts" request to get all posts')
-    def find_all_posts(self, headers=None) -> Response:
+    @allure.step('Run "Find all posts by container" request to get all posts by container')
+    def find_all_posts_by_container(self, container_id=None, params=None, headers=None) -> Response:
         headers = headers if headers else self.headers
         self.response = requests.get(
-            url=f'{self.url}/api/v1/post',
-            headers=headers
+            url=f'{self.url}/api/v1/post/container/{container_id}',
+            headers=headers,
+            params=params
         )
         try:
             if self.response.status_code != 200:

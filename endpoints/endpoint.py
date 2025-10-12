@@ -12,7 +12,7 @@ class Endpoint:
 
     @allure.step('Check that response is 200')
     def check_that_status_is_200(self):
-        assert self.response.status_code == 200
+        assert self.response.status_code == 200, f'but got {self.response.status_code}'
 
     @allure.step('Check that 400 error received')
     def check_that_status_is_400(self):
@@ -28,7 +28,7 @@ class Endpoint:
 
     @allure.step('Check that 404 error received')
     def check_that_status_is_404(self):
-        assert self.response.status_code == 404
+        assert self.response.status_code == 404, f'but got {self.response.status_code}'
 
     @allure.step('Check that response data corresponds request payload')
     def check_response_data(self, payload):
