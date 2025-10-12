@@ -36,12 +36,10 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
             "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts?name=allure-results")
 
-          echo "Allure response: $RESPONSE"
-
-          ARTIFACT_ID=$(echo "$RESPONSE" | python -c "import sys, json; data=json.load(sys.stdin); a=data.get('artifacts', []); print(a[0]['id'] if a else '')")
+          ARTIFACT_ID=$(echo "$RESPONSE" | python -c "import sys, json; data=json.load(sys.stdin); print(data.get('artifacts', [{}])[0].get('id', ''))")
 
           if [ -z "$ARTIFACT_ID" ]; then
-            echo "No allure-results artifact found, skipping download."
+            echo "No allure-results artifact found, skipping download (likely first run)."
           else
             echo "Found allure-results artifact with ID: $ARTIFACT_ID"
             curl -L -H "Accept: application/vnd.github+json" \
@@ -55,12 +53,10 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
             "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts?name=github-pages")
 
-          echo "Pages response: $RESPONSE"
-
-          REPORT_ID=$(echo "$RESPONSE" | python -c "import sys, json; data=json.load(sys.stdin); a=data.get('artifacts', []); print(a[0]['id'] if a else '')")
+          REPORT_ID=$(echo "$RESPONSE" | python -c "import sys, json; data=json.load(sys.stdin); print(data.get('artifacts', [{}])[0].get('id', ''))")
 
           if [ -z "$REPORT_ID" ]; then
-            echo "No github-pages artifact found, skipping download."
+            echo "No github-pages artifact found, skipping download (likely first run)."
           else
             echo "Found github-pages artifact with ID: $REPORT_ID"
             curl -L -H "Accept: application/vnd.github+json" \
