@@ -37,7 +37,6 @@ jobs:
           fi
 
           mkdir -p old_pages pages_history
-          tar -xvf old_pages/artifact.tar -C pages_history
           cp pages_history/history/* allure-results
           cp -r pages_history/history allure-results
 
