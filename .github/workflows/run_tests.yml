@@ -29,19 +29,6 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Download artifacts
-        run: |
-
-          REPORT_ID=$(curl -s -L -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-            "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts?name=github-pages" \
-            | python -c "import sys, json; a=json.load(sys.stdin)['artifacts']; print(a[0]['id'] if a else '')")
-
-          curl -L -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-            "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts/$REPORT_ID/zip" \
-            -o pages.zip
-
       - name: Prepare allure history
         run: |
           mkdir -p allure-results
