@@ -31,81 +31,42 @@ jobs:
 
       - name: Download artifacts
         run: |
-          echo "=== Fetching allure-results artifact ==="
-          ALLURE_API_URL="https://api.github.com/repos/${{ github.repository }}/actions/artifacts?name=allure-results"
-
-          curl -s -L -H "Accept: application/vnd.github+json" \
+          ARTIFACT_ID=$(curl -s -L -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-            "$ALLURE_API_URL" > response.json
+            "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts?name=allure-results" \
+            | python -c "import sys, json; a=json.load(sys.stdin)['artifacts']; print(a[0]['id'] if a else '')")
 
-          python3 - <<EOF
-import json
-d = json.load(open('response.json'))
-arts = d.get('artifacts', [])
-id_value = arts[0]['id'] if arts else ''
-with open('artifact_id.txt', 'w') as f:
-    f.write(id_value)
-EOF
-
-          ARTIFACT_ID=$(cat artifact_id.txt)
-
-          if [ -n "$ARTIFACT_ID" ]; then
-            echo "Found allure-results artifact: $ARTIFACT_ID"
+          if [ -z "$ARTIFACT_ID" ]; then
+            echo "No allure-results artifact found, skipping download."
+          else
             curl -L -H "Accept: application/vnd.github+json" \
               -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID/zip" \
+              "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts/$ARTIFACT_ID/zip" \
               -o artifacts.zip
-          else
-            echo "No previous allure-results artifact found, will generate from scratch."
           fi
 
-          echo "=== Fetching github-pages artifact ==="
-          REPORT_API_URL="https://api.github.com/repos/${{ github.repository }}/actions/artifacts?name=github-pages"
-
-          curl -s -L -H "Accept: application/vnd.github+json" \
+          REPORT_ID=$(curl -s -L -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-            "$REPORT_API_URL" > response_pages.json
+            "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts?name=github-pages" \
+            | python -c "import sys, json; a=json.load(sys.stdin)['artifacts']; print(a[0]['id'] if a else '')")
 
-          python3 - <<EOF
-import json
-d = json.load(open('response_pages.json'))
-arts = d.get('artifacts', [])
-id_value = arts[0]['id'] if arts else ''
-with open('report_id.txt', 'w') as f:
-    f.write(id_value)
-EOF
-
-          REPORT_ID=$(cat report_id.txt)
-
-          if [ -n "$REPORT_ID" ]; then
-            echo "Found github-pages artifact: $REPORT_ID"
-            curl -L -H "Accept: application/vnd.github+json" \
-              -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/$REPORT_ID/zip" \
-              -o pages.zip
-          else
-            echo "No github-pages artifact found, skipping history import."
+          curl -L -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
+            "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts/$REPORT_ID/zip" \
+            -o pages.zip
 
       - name: Prepare allure history
         run: |
           mkdir -p allure-results
-
-          if [ -s artifacts.zip ]; then
-              echo "Unzipping previous allure-results..."
-              unzip artifacts.zip -d allure-results
-          else
-              echo "No previous allure-results found, starting fresh."
+          if [ -f artifacts.zip ]; then
+            unzip artifacts.zip -d allure-results
           fi
 
           mkdir -p old_pages pages_history
-          if [ -s pages.zip ]; then
-              echo "Unzipping previous github-pages..."
-              unzip pages.zip -d old_pages
-              tar -xvf old_pages/artifact.tar -C pages_history
-              cp -r pages_history/history/* allure-results/ || true
-          else
-              echo "No previous github-pages found, skipping history import."
-          fi
+          unzip pages.zip -d old_pages
+          tar -xvf old_pages/artifact.tar -C pages_history
+          cp pages_history/history/* allure-results
+          cp -r pages_history/history allure-results
 
       - name: Store allure history
         uses: actions/upload-artifact@v4
