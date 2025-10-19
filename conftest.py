@@ -10,10 +10,19 @@ from endpoints.post.updates_a_post_by_id import UpdatePost
 from endpoints.post.upload_files_to_post_by_id import UploadFilesToPost
 from endpoints.post.deletes_a_post_by_id import DeletePost
 
+from endpoints.comment.create_a_comment import CreateComment
+from endpoints.comment.update_a_comment_by_id import UpdateComment
+from endpoints.comment.deletes_a_comment_by_id import DeleteComment
+from endpoints.comment.get_comment_by_id import GetComment
+from endpoints.comment.find_comments_by_content import FindCommentsByContent
+from endpoints.comment.find_comments_by_object import FindCommentsByObject
+
 from pages.dashboard import DashboardPage
 
 from fixtures import create_and_delete_post_fixture  # NOQA F401
 from fixtures import create_post_fixture  # NOQA F401
+from fixtures import create_and_delete_comment_fixture  # NOQA F401
+from fixtures import create_comment_fixture  # NOQA F401
 
 
 @pytest.fixture()
@@ -62,3 +71,33 @@ def delete_post_endpoint():
 @pytest.fixture()
 def upload_files_to_post_endpoint():
     return UploadFilesToPost()
+
+
+@pytest.fixture()
+def create_comment_endpoint():
+    return CreateComment()
+
+
+@pytest.fixture()
+def update_comment_endpoint():
+    return UpdateComment()
+
+
+@pytest.fixture()
+def delete_comment_endpoint():
+    return DeleteComment()
+
+
+@pytest.fixture()
+def get_comment_by_id_endpoint():
+    return GetComment()
+
+
+@pytest.fixture()
+def get_comments_by_content_endpoint():
+    return FindCommentsByContent()
+
+
+@pytest.fixture()
+def get_comments_by_object_endpoint():
+    return FindCommentsByObject()
