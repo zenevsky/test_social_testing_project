@@ -1,0 +1,32 @@
+import json
+
+import allure
+import requests
+from requests import Response
+
+from endpoints.endpoint import Endpoint
+from endpoints.comment.models.comment_model import DataContainerModel
+
+
+class FindCommentsByObject(Endpoint):
+
+    @allure.step('Run "Find comments by object" request to get comments by object')
+    def find_comments_by_object(self, params=None, headers=None) -> Response:
+        headers = headers if headers else self.headers
+        self.response = requests.get(
+            url=f'{self.url}/api/v1/comment/find-by-object',
+            headers=headers,
+            params=params
+        )
+        try:
+            if self.response.status_code != 200:
+                return self.response
+            self.json = self.response.json()
+            self.data = DataContainerModel(**self.json)
+        except json.JSONDecodeError as e:
+            print(f"JSON Decode Error: {e}")
+        return self.response
+
+    @allure.step("Check that ID is correct")
+    def check_that_id_is_correct(self, comment_id):
+        assert self.data.id == comment_id
