@@ -1,5 +1,41 @@
-from endpoints.post.models.post_object import PostPayload
+from endpoints.post.models.post_object import PostPayload, Data, Content, Topic
 
 POSITIVE_DATA = [
-    PostPayload()
+    PostPayload(),
+    PostPayload(data=Data(message='A')),
+    PostPayload(data=Data(content=Content(topics=[]))),
+    PostPayload(data=Data(content=Content(topics=None))),
+    PostPayload(data=Data(content=Content(topics=[Topic(name='test'), Topic(name='test2')]))),
+]
+
+NEGATIVE_DATA = [
+    PostPayload(data=None),
+    PostPayload(data=True),
+    PostPayload(data=123),
+    PostPayload(data='test'),
+    PostPayload(data={'test': 123}),
+    PostPayload(data=['test', 123]),
+    PostPayload(data=Data(message=None)),
+    PostPayload(data=Data(message="")),
+    PostPayload(data=Data(message=True)),
+    PostPayload(data=Data(message=123)),
+    PostPayload(data=Data(message={'test': 123})),
+    PostPayload(data=Data(message=['test', 123])),
+    # PostPayload(data=Data(content=None)),
+    # PostPayload(data=Data(content=True)),
+    # PostPayload(data=Data(content=123)),
+    # PostPayload(data=Data(content='test')),
+    # PostPayload(data=Data(content={'test': 123})),
+    # PostPayload(data=Data(content=['test', 123])),
+    # PostPayload(data=Data(content=Content(topics=[{'test': 'test'}]))),
+    # PostPayload(data=Data(content=Content(topics=True))),
+    # PostPayload(data=Data(content=Content(topics=123))),
+    # PostPayload(data=Data(content=Content(topics='test'))),
+    # PostPayload(data=Data(content=Content(topics={'test': 123}))),
+    # PostPayload(data=Data(content=Content(topics=['test', 123]))),
+    # PostPayload(data=Data(content=Content(topics=[Topic(name=None)]))),
+    # PostPayload(data=Data(content=Content(topics=[Topic(name=True)]))),
+    # PostPayload(data=Data(content=Content(topics=[Topic(name=123)]))),
+    # PostPayload(data=Data(content=Content(topics=[Topic(name={'test': 123})]))),
+    # PostPayload(data=Data(content=Content(topics=[Topic(name=['test', 123])]))),
 ]

@@ -75,6 +75,8 @@ class Links(BaseModel):
     self: str
     first: str
     last: str
+    next: str = None
+
 
 
 class DataContainerModel(BaseModel):

@@ -1,29 +1,23 @@
 import allure
 import pytest
-
 from endpoints.comment.models.comment_object import CreateCommentPayload
 
 
+@pytest.mark.api
 @allure.feature('Comment')
 @allure.story('Find Comments By Content')
-@pytest.mark.api
 class TestFindCommentsByContent:
 
     @pytest.mark.high
-    @allure.title('Find comments by content')
-    def test_find_comments_by_content(self, create_and_delete_post_fixture, create_comment_endpoint,
-                                      get_comments_by_content_endpoint):
-        comment_payload = CreateCommentPayload(objectId=create_and_delete_post_fixture.data.id)
-        create_comment_endpoint.create_comment(comment_payload)
-        get_comments_by_content_endpoint.find_comments_by_content(create_and_delete_post_fixture.data.content.id)
-        get_comments_by_content_endpoint.check_that_status_is_200()
+    @allure.title('Find comments by content successfully')
+    def test_find_comments_by_content_positive(self, comment_steps, create_and_delete_post_fixture):
+        payload = CreateCommentPayload(objectId=create_and_delete_post_fixture.data.id)
+        comment_steps.create_comment_successful(payload)
+        comment_steps.find_comments_by_content_successful(create_and_delete_post_fixture.data.content.id)
 
     @pytest.mark.high
     @allure.title('Find comments by content without auth')
-    def test_find_comments_by_content_without_auth(self, create_and_delete_post_fixture, create_comment_endpoint,
-                                                      get_comments_by_content_endpoint):
-        comment_payload = CreateCommentPayload(objectId=create_and_delete_post_fixture.data.id)
-        create_comment_endpoint.create_comment(comment_payload)
-        get_comments_by_content_endpoint.find_comments_by_content(create_and_delete_post_fixture.data.content.id,
-                                                                  headers={'Content-type': 'application/json'})
-        get_comments_by_content_endpoint.check_that_status_is_401()
+    def test_find_comments_by_content_without_auth(self, comment_steps, create_and_delete_post_fixture):
+        payload = CreateCommentPayload(objectId=create_and_delete_post_fixture.data.id)
+        comment_steps.create_comment_successful(payload)
+        comment_steps.find_comments_by_content_without_auth(create_and_delete_post_fixture.data.content.id)

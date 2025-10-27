@@ -1,20 +1,18 @@
-import allure
 import pytest
+import allure
 
 
+@pytest.mark.api
 @allure.feature('Post')
 @allure.story('Find All Posts')
-@pytest.mark.api
 class TestFindAllPosts:
 
     @pytest.mark.high
-    @allure.title('Find all posts with auth')
-    def test_find_all_posts(self, get_all_posts_endpoint):
-        get_all_posts_endpoint.find_all_posts()
-        get_all_posts_endpoint.check_that_status_is_200()
+    @allure.title('Find all posts successfully')
+    def test_find_all_posts_successful(self, post_steps):
+        post_steps.find_all_posts_successful()
 
     @pytest.mark.high
-    @allure.title('Find all posts without auth')
-    def test_find_all_posts_without_auth(self, get_all_posts_endpoint):
-        get_all_posts_endpoint.find_all_posts(headers={'Content-type': 'application/json'})
-        get_all_posts_endpoint.check_that_status_is_401()
+    @allure.title('Fail to find all posts without authorization')
+    def test_find_all_posts_without_auth(self, post_steps):
+        post_steps.find_all_posts_without_auth()

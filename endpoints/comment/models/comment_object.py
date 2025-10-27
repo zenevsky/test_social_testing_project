@@ -10,7 +10,7 @@ class Comment:
 
 @dataclass
 class CreateCommentPayload:
-    Comment: Optional[Comment] = field(default_factory=Comment)
+    Comment: Optional[Any] = field(default_factory=Comment)
     objectModel: Optional[Any] = "humhub\\modules\\post\\models\\Post"
     objectId: Optional[Any] = None
 
@@ -21,7 +21,7 @@ class CreateCommentPayload:
 
 @dataclass
 class UpdateCommentPayload:
-    Comment: Optional[Comment] = field(default_factory=Comment)
+    Comment: Optional[Any] = field(default_factory=Comment)
 
     def to_dict(self) -> dict:
         data = asdict(self)

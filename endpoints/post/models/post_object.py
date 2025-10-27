@@ -19,17 +19,17 @@ class Metadata:
 
 @dataclass
 class Content:
-    metadata: Optional[Metadata] = field(default_factory=Metadata)
-    topics: Optional[List[Topic]] = field(default_factory=lambda: [Topic()])
+    metadata: Optional[Any] = field(default_factory=Metadata)
+    topics: Optional[Any] = field(default_factory=list)
 
 @dataclass
 class Data:
     message: Optional[Any] = "Calvin Klein – Between love and madness lies obsession."
-    content: Optional[Content] = field(default_factory=Content)
+    content: Optional[Any] = field(default_factory=Content)
 
 @dataclass
 class PostPayload:
-    data: Optional[Data] = field(default_factory=Data)
+    data: Optional[Any] = field(default_factory=Data)
 
     def to_dict(self) -> dict:
         def serialize(obj):

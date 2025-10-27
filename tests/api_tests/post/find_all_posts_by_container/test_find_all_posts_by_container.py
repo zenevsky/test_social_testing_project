@@ -1,20 +1,23 @@
-import allure
 import pytest
+import allure
 
 
+@pytest.mark.api
 @allure.feature('Post')
 @allure.story('Find All Posts By Container')
-@pytest.mark.api
 class TestFindAllPostsByContainer:
 
     @pytest.mark.high
-    @allure.title('Find all posts by container')
-    def test_find_all_posts_by_container(self, get_all_posts_by_container_endpoint):
-        get_all_posts_by_container_endpoint.find_all_posts_by_container(2)
-        get_all_posts_by_container_endpoint.check_that_status_is_200()
+    @allure.title('Find all posts by container successfully')
+    def test_find_all_posts_by_container_successful(self, post_steps):
+        post_steps.find_all_posts_by_container_successful(2)
+
+    @pytest.mark.low
+    @allure.title('404 received when requesting posts by non-existing container')
+    def test_find_all_posts_by_container_non_existing(self, post_steps):
+        post_steps.find_all_posts_by_container_non_existing(9999999999)
 
     @pytest.mark.high
-    @allure.title('Find all posts by container without auth')
-    def test_find_all_posts_by_container_without_auth(self, get_all_posts_by_container_endpoint):
-        get_all_posts_by_container_endpoint.find_all_posts_by_container(2, headers={'Content-type': 'application/json'})
-        get_all_posts_by_container_endpoint.check_that_status_is_401()
+    @allure.title('Fail to find all posts by container without authorization')
+    def test_find_all_posts_by_container_without_auth(self, post_steps):
+        post_steps.find_all_posts_by_container_without_auth(2)
