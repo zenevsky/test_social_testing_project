@@ -106,7 +106,7 @@ jobs:
         if: github.event.inputs.deployment_target == 'API'
         env:
           API_TOKEN: ${{ secrets.API_TOKEN }}
-        run: pytest -m api_steps --alluredir=allure-results
+        run: pytest -m api --alluredir=allure-results
         continue-on-error: true
 
       - name: Run UI tests
