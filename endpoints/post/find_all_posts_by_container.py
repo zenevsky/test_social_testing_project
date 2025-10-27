@@ -26,3 +26,8 @@ class FindAllPostsByContainer(Endpoint):
         except json.JSONDecodeError as e:
             print(f"JSON Decode Error: {e}")
         return self.response
+
+    @allure.step('Check container_id value')
+    def check_content_container_id_value(self, container_id):
+        for post in self.data.results:
+            assert post.content.metadata.contentcontainer_id == container_id

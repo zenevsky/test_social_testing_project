@@ -1,28 +1,23 @@
-import allure
 import pytest
+import allure
 
 
+@pytest.mark.api
 @allure.feature('Post')
 @allure.story('Get Post By ID')
-@pytest.mark.api
 class TestGetPost:
-    @pytest.mark.high
-    @allure.title('Get Post By ID')
-    def test_get_post_by_id(self, get_post_by_id_endpoint, create_and_delete_post_fixture):
-        get_post_by_id_endpoint.get_post(create_and_delete_post_fixture.data.id)
-        get_post_by_id_endpoint.check_that_status_is_200()
-        get_post_by_id_endpoint.check_that_id_is_correct(create_and_delete_post_fixture.data.id)
 
     @pytest.mark.high
-    @allure.title('Get Post By ID without auth')
-    def test_get_post_by_id_without_auth(self, get_post_by_id_endpoint, create_and_delete_post_fixture):
-        get_post_by_id_endpoint.get_post(
-            create_and_delete_post_fixture.data.id,
-            headers={'Content-type': 'application/json'})
-        get_post_by_id_endpoint.check_that_status_is_401()
+    @allure.title('Get post by ID successfully')
+    def test_get_post_successful(self, post_steps, create_and_delete_post_fixture):
+        post_steps.get_post_successful(create_and_delete_post_fixture.data.id)
 
     @pytest.mark.high
-    @allure.title('Get Not Existing Post')
-    def test_get_not_existing_post(self, get_post_by_id_endpoint):
-        get_post_by_id_endpoint.get_post(999999999999999999999)
-        get_post_by_id_endpoint.check_that_status_is_404()
+    @allure.title('Fail to get post by ID without authorization')
+    def test_get_post_without_auth(self, post_steps, create_and_delete_post_fixture):
+        post_steps.get_post_without_auth(create_and_delete_post_fixture.data.id)
+
+    @pytest.mark.low
+    @allure.title('Get non-existing post returns 404')
+    def test_get_post_non_existing(self, post_steps):
+        post_steps.get_post_non_existing(999999999999999999999)

@@ -19,6 +19,9 @@ from endpoints.comment.find_comments_by_object import FindCommentsByObject
 
 from pages.dashboard import DashboardPage
 
+from steps_fixtures import post_steps  # NOQA F401
+from steps_fixtures import comment_steps  # NOQA F401
+
 from fixtures import create_and_delete_post_fixture  # NOQA F401
 from fixtures import create_post_fixture  # NOQA F401
 from fixtures import create_and_delete_comment_fixture  # NOQA F401
@@ -101,3 +104,5 @@ def get_comments_by_content_endpoint():
 @pytest.fixture()
 def get_comments_by_object_endpoint():
     return FindCommentsByObject()
+
+
