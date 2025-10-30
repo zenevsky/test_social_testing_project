@@ -9,3 +9,6 @@ class DashboardPage(BasePage):
     def check_dashboard_tab_header_is_active(self):
         dashboard_tab_header = self.find(loc.dashboard_tab_header)
         expect(dashboard_tab_header).to_have_class('active')
+
+    def click_to_see_all_button(self):
+        self.page.get_by_text(loc.see_all_button).click()

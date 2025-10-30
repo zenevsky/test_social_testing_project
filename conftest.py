@@ -18,6 +18,8 @@ from endpoints.comment.find_comments_by_content import FindCommentsByContent
 from endpoints.comment.find_comments_by_object import FindCommentsByObject
 
 from pages.dashboard import DashboardPage
+from pages.spaces import SpacesPage
+from pages.components.login_modal import LoginModal
 
 from steps_fixtures import post_steps  # NOQA F401
 from steps_fixtures import comment_steps  # NOQA F401
@@ -39,6 +41,16 @@ def page(context: BrowserContext, playwright):
 @pytest.fixture()
 def dashboard_page(page):
     return DashboardPage(page)
+
+
+@pytest.fixture()
+def spaces_page(page):
+    return SpacesPage(page)
+
+
+@pytest.fixture()
+def login_modal(page):
+    return LoginModal(page)
 
 
 @pytest.fixture()
@@ -104,5 +116,3 @@ def get_comments_by_content_endpoint():
 @pytest.fixture()
 def get_comments_by_object_endpoint():
     return FindCommentsByObject()
-
-
