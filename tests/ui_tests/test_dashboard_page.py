@@ -7,7 +7,9 @@ import pytest
 @pytest.mark.ui
 class TestDashboardPage:
 
-    @pytest.mark.low
-    def test_dashboard_tab_header_is_active(self, dashboard_page):
+    @pytest.mark.medium
+    def test_spaces_page_is_opened_by_clicking_to_see_all_button(self, dashboard_page, spaces_page):
         dashboard_page.open_page()
         dashboard_page.check_dashboard_tab_header_is_active()
+        dashboard_page.click_to_see_all_button()
+        spaces_page.should_have_active_spaces_tab()
