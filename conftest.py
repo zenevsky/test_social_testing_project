@@ -20,6 +20,9 @@ from endpoints.comment.find_comments_by_object import FindCommentsByObject
 from pages.dashboard import DashboardPage
 from pages.spaces import SpacesPage
 from pages.components.login_modal import LoginModal
+from pages.components.account_dropdown import AccountDropdown
+from pages.components.profile_panel import ProfilePanel
+from pages.edit_profile import EditProfilePage
 
 from steps_fixtures import post_steps  # NOQA F401
 from steps_fixtures import comment_steps  # NOQA F401
@@ -51,6 +54,21 @@ def spaces_page(page):
 @pytest.fixture()
 def login_modal(page):
     return LoginModal(page)
+
+
+@pytest.fixture()
+def account_dropdown(page):
+    return AccountDropdown(page)
+
+
+@pytest.fixture()
+def profile_panel(page):
+    return ProfilePanel(page)
+
+
+@pytest.fixture()
+def edit_profile_page(page):
+    return EditProfilePage(page)
 
 
 @pytest.fixture()
