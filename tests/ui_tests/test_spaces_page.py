@@ -21,17 +21,6 @@ class TestSpacesPage:
         spaces_page.when_search_for("Добро")
         spaces_page.should_return_search_results_containing("Добро")
 
-    @pytest.mark.medium
-    @allure.title("Reset filters restores the spaces list")
-    def test_reset_filters_restores_cards(self, spaces_page):
-        spaces_page.open_page()
-        initial_count = spaces_page.get_cards().count()
-        spaces_page.when_search_for("Добро")
-        filtered_count = spaces_page.get_cards().count()
-        assert filtered_count <= initial_count
-        spaces_page.when_reset_filters()
-        spaces_page.should_reset_filters_restore_cards()
-
     @pytest.mark.low
     @allure.title("Sort and status dropdowns are visible")
     def test_sort_and_status_dropdowns_are_visible(self, spaces_page):

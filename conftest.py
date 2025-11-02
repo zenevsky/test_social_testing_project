@@ -23,6 +23,7 @@ from pages.components.login_modal import LoginModal
 from pages.components.account_dropdown import AccountDropdown
 from pages.components.profile_panel import ProfilePanel
 from pages.edit_profile import EditProfilePage
+from pages.components.most_active_users_modal import MostActiveUsersModal
 
 from steps_fixtures import post_steps  # NOQA F401
 from steps_fixtures import comment_steps  # NOQA F401
@@ -69,6 +70,11 @@ def profile_panel(page):
 @pytest.fixture()
 def edit_profile_page(page):
     return EditProfilePage(page)
+
+
+@pytest.fixture()
+def most_active_users_modal(page):
+    return MostActiveUsersModal(page)
 
 
 @pytest.fixture()
