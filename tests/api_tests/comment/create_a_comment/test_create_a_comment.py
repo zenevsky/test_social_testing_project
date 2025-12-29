@@ -13,13 +13,13 @@ class TestCreateComment:
     @pytest.mark.parametrize('payload', POSITIVE_DATA)
     @pytest.mark.high
     @allure.title('Create a Comment successfully')
-    def test_create_comment_positive(self, comment_steps, create_and_delete_post_fixture, payload):
-        payload.objectId = create_and_delete_post_fixture.data.id
+    def test_create_comment_positive(self, comment_steps, create_and_delete_post, payload):
+        payload.objectId = create_and_delete_post.data.id
         comment = comment_steps.create_comment_successful(payload)
         comment_steps.delete_comment_successful(comment.id)
 
     @pytest.mark.high
     @allure.title('Create a Comment without auth')
-    def test_create_comment_without_auth(self, comment_steps, create_and_delete_post_fixture):
-        payload = CreateCommentPayload(objectId=create_and_delete_post_fixture.data.id)
+    def test_create_comment_without_auth(self, comment_steps, create_and_delete_post):
+        payload = CreateCommentPayload(objectId=create_and_delete_post.data.id)
         comment_steps.create_comment_without_auth(payload)

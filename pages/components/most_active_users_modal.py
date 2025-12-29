@@ -37,26 +37,26 @@ class MostActiveUsersModal(BasePage):
     @allure.step("Close Most Active Users modal")
     def click_close(self) -> None:
         self.get_close_button().click()
-        self.should_not_be_visible()
+        self.check_that_most_active_users_is_not_visible()
 
     @allure.step("Most Active Users modal should be visible")
-    def should_be_visible(self) -> None:
+    def check_that_most_active_users_is_visible(self) -> None:
         expect(self.get_modal()).to_be_visible()
 
     @allure.step("Most Active Users modal should not be visible")
-    def should_not_be_visible(self) -> None:
+    def check_that_most_active_users_is_not_visible(self) -> None:
         expect(self.get_modal()).not_to_be_visible()
 
     @allure.step("Modal should contain {expected} users")
-    def should_have_users_count(self, expected: int) -> None:
+    def check_that_modal_contains_expected_users(self, expected: int) -> None:
         expect(self.get_users()).to_have_count(expected)
 
     @allure.step("User #{index} should have name '{name}'")
-    def should_user_have_name(self, index: int, name: str) -> None:
+    def check_that_user_has_name(self, index: int, name: str) -> None:
         expect(self.get_user_name(index)).to_have_text(name)
 
     @allure.step("User #{index} should have {expected} stats entries")
-    def should_user_have_stats_entries(self, index: int, expected: int) -> None:
+    def check_that_user_has_stats_entries(self, index: int, expected: int) -> None:
         expect(self.get_user_stats(index)).to_have_count(expected)
 
     @allure.step("Get profile URL for user #{index}")
@@ -64,5 +64,5 @@ class MostActiveUsersModal(BasePage):
         return self.get_user_link(index).get_attribute("href")
 
     @allure.step("Extract username from profile URL for user #{index}")
-    def get_username(self, index: int) -> str:
+    def get_username_from_profile_url(self, index: int) -> str:
         return self.get_user_profile_url(index).split("/")[-2]

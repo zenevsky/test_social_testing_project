@@ -8,42 +8,42 @@ from playwright.sync_api import expect
 class ProfilePanel(BasePage):
 
     @allure.step("Profile panel should be visible")
-    def should_see_profile_panel(self) -> None:
+    def check_that_profile_panel_is_visible(self) -> None:
         expect(self.find(loc.panel_container)).to_be_visible()
 
     @allure.step("Profile photo should be uploaded")
-    def should_see_profile_photo_uploaded(self) -> None:
+    def check_that_profile_photo_uploaded(self) -> None:
         img = self.find(loc.profile_photo_img)
         expect(img).to_be_visible()
         expect(img).not_to_have_attribute("src", loc.default_avatar_src)
 
     @allure.step("Profile photo should be deleted")
-    def should_see_profile_photo_deleted(self) -> None:
+    def check_that_profile_photo_deleted(self) -> None:
         img = self.find(loc.profile_photo_img)
         expect(img).to_have_attribute("src", loc.default_avatar_src)
 
     @allure.step("Banner should be uploaded")
-    def should_see_banner_uploaded(self) -> None:
+    def check_that_banner_uploaded(self) -> None:
         img = self.find(loc.banner_image)
         expect(img).to_be_visible()
         expect(img).not_to_have_attribute("src", loc.default_banner_src)
 
     @allure.step("Banner should be deleted")
-    def should_see_banner_deleted(self) -> None:
+    def check_that_banner_deleted(self) -> None:
         img = self.find(loc.banner_image)
         expect(img).to_have_attribute("src", loc.default_banner_src)
 
     @allure.step("Should be on profile page of '{username}'")
-    def should_be_on_profile_page(self, username: str) -> None:
+    def check_that_expected_profile_page_is_opened(self, username: str) -> None:
         pattern = re.compile(rf"/u/{re.escape(username.lower())}/?$", re.IGNORECASE)
         expect(self.page).to_have_url(pattern)
 
     @allure.step("Delete confirmation modal should be visible")
-    def should_see_delete_modal(self) -> None:
+    def check_that_delete_modal_is_visible(self) -> None:
         expect(self.find(loc.delete_modal)).to_be_visible()
 
     @allure.step("Delete confirmation modal should NOT be visible")
-    def should_not_see_delete_modal(self) -> None:
+    def check_that_delete_modal_is_not_visible(self) -> None:
         expect(self.find(loc.delete_modal)).not_to_be_visible()
 
     @allure.step("Click username on profile panel")

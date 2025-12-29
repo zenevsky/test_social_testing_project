@@ -12,4 +12,4 @@ class TestDashboardPage:
         dashboard_page.open_page()
         dashboard_page.check_dashboard_tab_header_is_active()
         dashboard_page.click_to_see_all_button()
-        spaces_page.should_have_active_spaces_tab()
+        spaces_page.check_that_active_spaces_tab_is_visible()

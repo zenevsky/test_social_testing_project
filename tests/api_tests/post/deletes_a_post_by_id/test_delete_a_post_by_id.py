@@ -9,8 +9,8 @@ class TestDeletePost:
 
     @pytest.mark.high
     @allure.title('Delete a post successfully')
-    def test_delete_post_successful(self, post_steps, create_post_fixture):
-        post_steps.delete_post_successful(create_post_fixture.data.id)
+    def test_delete_post_successful(self, post_steps, create_new_post):
+        post_steps.delete_post_successful(create_new_post.data.id)
 
     @pytest.mark.high
     @allure.title('Unable to delete a post created by another user')
@@ -24,5 +24,5 @@ class TestDeletePost:
 
     @pytest.mark.high
     @allure.title('Fail to delete a post without authorization')
-    def test_delete_post_without_auth(self, post_steps, create_and_delete_post_fixture):
-        post_steps.delete_post_without_auth(create_and_delete_post_fixture.data.id)
+    def test_delete_post_without_auth(self, post_steps, create_and_delete_post):
+        post_steps.delete_post_without_auth(create_and_delete_post.data.id)

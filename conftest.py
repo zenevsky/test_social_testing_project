@@ -24,14 +24,20 @@ from pages.components.account_dropdown import AccountDropdown
 from pages.components.profile_panel import ProfilePanel
 from pages.edit_profile import EditProfilePage
 from pages.components.most_active_users_modal import MostActiveUsersModal
+from pages.space import SpacePage
 
 from steps_fixtures import post_steps  # NOQA F401
 from steps_fixtures import comment_steps  # NOQA F401
+from steps_fixtures import edit_profile_steps  # NOQA F401
+from steps_fixtures import space_steps  # NOQA F401
 
-from fixtures import create_and_delete_post_fixture  # NOQA F401
-from fixtures import create_post_fixture  # NOQA F401
-from fixtures import create_and_delete_comment_fixture  # NOQA F401
-from fixtures import create_comment_fixture  # NOQA F401
+from fixtures import create_and_delete_post  # NOQA F401
+from fixtures import create_new_post  # NOQA F401
+from fixtures import create_and_delete_comment  # NOQA F401
+from fixtures import create_new_comment  # NOQA F401
+from fixtures import comments_from_db  # NOQA F401
+
+from db.connection import mysql_connection  # NOQA F401
 
 
 @pytest.fixture()
@@ -75,6 +81,11 @@ def edit_profile_page(page):
 @pytest.fixture()
 def most_active_users_modal(page):
     return MostActiveUsersModal(page)
+
+
+@pytest.fixture
+def space_page(page):
+    return SpacePage(page)
 
 
 @pytest.fixture()
