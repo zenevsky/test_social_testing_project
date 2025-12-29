@@ -14,7 +14,7 @@ class AccountDropdown(BasePage):
         expect(self.find(loc.menu_container)).to_be_visible()
 
     @allure.step("Account dropdown menu should be visible")
-    def should_be_visible(self) -> None:
+    def check_that_account_dropdown_is_visible(self) -> None:
         expect(self.page.locator(loc.menu_container)).to_be_visible()
 
     @allure.step("Click 'Profile' in dropdown")
@@ -35,13 +35,13 @@ class AccountDropdown(BasePage):
         self.click_profile()
 
     @allure.step("Dropdown should contain 'Profile' item")
-    def should_have_profile_item(self) -> None:
+    def check_that_dropdown_has_profile_item(self) -> None:
         expect(self.page.locator(loc.profile_link)).to_be_visible()
 
     @allure.step("Dropdown should contain 'Settings' item")
-    def should_have_settings_item(self) -> None:
+    def check_that_dropdown_has_settings_item(self) -> None:
         expect(self.page.locator(loc.settings_link)).to_be_visible()
 
     @allure.step("Dropdown should contain 'Logout' item")
-    def should_have_logout_item(self) -> None:
+    def check_that_dropdown_has_logout_item(self) -> None:
         expect(self.page.locator(loc.logout_link)).to_be_visible()

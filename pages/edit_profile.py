@@ -185,41 +185,13 @@ class EditProfilePage(BasePage):
         self.page.click(loc.save_button)
 
     @allure.step("Success message should be visible")
-    def should_see_success_message(self, text: str):
+    def check_that_success_message_is_visible(self, text: str):
         expect(self.page.locator(loc.status_message_span)).to_have_text(text)
 
     @allure.step("First name error should be visible")
-    def should_see_first_name_error(self, text: str):
+    def check_that_first_name_error_is_visible(self, text: str):
         expect(self.page.locator(loc.first_name_error)).to_have_text(text)
 
     @allure.step("Last name error should be visible")
-    def should_see_last_name_error(self, text: str):
+    def check_that_last_name_error_is_visible(self, text: str):
         expect(self.page.locator(loc.last_name_error)).to_have_text(text)
-
-    @allure.step("Fill General tab and save profile")
-    def fill_general_tab(self, general_data):
-        self.fill_general(**general_data.__dict__)
-        self.save_profile()
-        self.should_see_success_message("Saved")
-
-    @allure.step("Fill Communication tab and save profile")
-    def fill_communication_tab(self, comm_data):
-        self.open_communication_tab()
-        self.fill_communication(**comm_data.__dict__)
-        self.save_profile()
-        self.should_see_success_message("Saved")
-
-    @allure.step("Fill Social tab and save profile")
-    def fill_social_tab(self, social_data):
-        self.open_social_tab()
-        self.fill_social(**social_data.__dict__)
-        self.save_profile()
-        self.should_see_success_message("Saved")
-
-    @allure.step("Validate required fields on General tab")
-    def validate_required_fields(self):
-        self.fill_first_name("")
-        self.fill_last_name("")
-        self.save_profile()
-        self.should_see_first_name_error("First name cannot be blank.")
-        self.should_see_last_name_error("Last name cannot be blank.")

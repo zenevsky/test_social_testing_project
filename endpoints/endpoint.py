@@ -10,35 +10,10 @@ class Endpoint:
     data = None
     headers = {'Content-type': 'application/json', 'Authorization': os.getenv("API_TOKEN")}
 
-    @allure.step('Check that response is 200')
-    def check_that_status_is_200(self):
-        expected = 200
-        actual = self.response.status_code
-        assert actual == expected, f'Expected {expected}, but got {actual}'
-
-    @allure.step('Check that response is 400')
-    def check_that_status_is_400(self):
-        expected = 400
-        actual = self.response.status_code
-        assert actual == expected, f'Expected {expected}, but got {actual}'
-
-    @allure.step('Check that response is 401')
-    def check_that_status_is_401(self):
-        expected = 401
-        actual = self.response.status_code
-        assert actual == expected, f'Expected {expected}, but got {actual}'
-
-    @allure.step('Check that response is 403')
-    def check_that_status_is_403(self):
-        expected = 403
-        actual = self.response.status_code
-        assert actual == expected, f'Expected {expected}, but got {actual}'
-
-    @allure.step('Check that response is 404')
-    def check_that_status_is_404(self):
-        expected = 404
-        actual = self.response.status_code
-        assert actual == expected, f'Expected {expected}, but got {actual}'
+    @allure.step('Check response status')
+    def check_that_status_is(self, expected_status):
+        actual_status = self.response.status_code
+        assert actual_status == expected_status, f'Expected {expected_status}, but got {actual_status}'
 
     @allure.step('Check error message')
     def check_error_message_is(self, error_message):
@@ -54,5 +29,3 @@ class Endpoint:
     def check_message_value(self, payload):
         message_value = payload.data.message
         assert self.data.message == message_value
-
-

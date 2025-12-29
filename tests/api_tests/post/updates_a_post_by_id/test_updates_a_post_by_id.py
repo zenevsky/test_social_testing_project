@@ -13,14 +13,14 @@ class TestUpdatePost:
     @pytest.mark.parametrize('payload', POSITIVE_DATA)
     @pytest.mark.high
     @allure.title('Update a post successfully')
-    def test_update_post_positive(self, post_steps, create_and_delete_post_fixture, payload):
-        post_steps.update_post_successful(create_and_delete_post_fixture.data.id, payload)
+    def test_update_post_positive(self, post_steps, create_and_delete_post, payload):
+        post_steps.update_post_successful(create_and_delete_post.data.id, payload)
 
     @pytest.mark.parametrize('payload', NEGATIVE_DATA)
     @pytest.mark.high
     @allure.title('Fail to update a post with invalid payload')
-    def test_update_post_negative(self, post_steps, create_and_delete_post_fixture, payload):
-        post_steps.update_post_invalid_payload(create_and_delete_post_fixture.data.id, payload)
+    def test_update_post_negative(self, post_steps, create_and_delete_post, payload):
+        post_steps.update_post_invalid_payload(create_and_delete_post.data.id, payload)
 
     @pytest.mark.high
     @allure.title('Unable to update a post created by another user')
@@ -36,6 +36,6 @@ class TestUpdatePost:
 
     @pytest.mark.high
     @allure.title('Fail to update a post without authorization')
-    def test_update_post_without_auth(self, post_steps, create_and_delete_post_fixture):
+    def test_update_post_without_auth(self, post_steps, create_and_delete_post):
         payload = PostPayload()
-        post_steps.update_post_without_auth(create_and_delete_post_fixture.data.id, payload)
+        post_steps.update_post_without_auth(create_and_delete_post.data.id, payload)
