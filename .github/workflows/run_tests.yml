@@ -20,70 +20,15 @@ permissions:
   id-token: write
 
 jobs:
-  download-history:
-    runs-on: ubuntu-latest
-    name: Download history
-    steps:
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: Download artifacts
-        run: |
-          ARTIFACT_ID=$(curl -s -L -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-            "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts?name=allure-results" \
-            | python -c "import sys, json; a=json.load(sys.stdin)['artifacts']; print(a[0]['id'] if a else '')")
-
-          if [ -z "$ARTIFACT_ID" ]; then
-            echo "No allure-results artifact found, skipping download."
-          else
-            curl -L -H "Accept: application/vnd.github+json" \
-              -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-              "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts/$ARTIFACT_ID/zip" \
-              -o artifacts.zip
-          fi
-
-          REPORT_ID=$(curl -s -L -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-            "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts?name=github-pages" \
-            | python -c "import sys, json; a=json.load(sys.stdin)['artifacts']; print(a[0]['id'] if a else '')")
-
-          curl -L -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-            "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts/$REPORT_ID/zip" \
-            -o pages.zip
-
-      - name: Prepare allure history
-        run: |
-          mkdir -p allure-results
-          if [ -f artifacts.zip ]; then
-            unzip artifacts.zip -d allure-results
-          fi
-
-          mkdir -p old_pages pages_history
-          unzip pages.zip -d old_pages
-          tar -xvf old_pages/artifact.tar -C pages_history
-          cp pages_history/history/* allure-results
-          cp -r pages_history/history allure-results
-
-      - name: Store allure history
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-results
-          path: allure-results
-          retention-days: 10
-
   run-tests:
-    runs-on: ubuntu-latest
     name: Run autotests
-    needs: download-history
+    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout autotests
         uses: actions/checkout@v4
 
-      - name: Set up Python environment
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
@@ -99,11 +44,6 @@ jobs:
         if: github.event.inputs.deployment_target == 'All'
         env:
           API_TOKEN: ${{ secrets.API_TOKEN }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          
         run: pytest --alluredir=allure-results
         continue-on-error: true
 
@@ -111,25 +51,24 @@ jobs:
         if: github.event.inputs.deployment_target == 'API'
         env:
           API_TOKEN: ${{ secrets.API_TOKEN }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-        run: pytest -m api -n=10 --alluredir=allure-results
+        run: pytest -m api --alluredir=allure-results
         continue-on-error: true
 
       - name: Run UI tests
         if: github.event.inputs.deployment_target == 'UI'
         env:
           API_TOKEN: ${{ secrets.API_TOKEN }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME: ${{ secrets.DB_NAME }}
         run: pytest -m ui --alluredir=allure-results
         continue-on-error: true
 
-      - name: Install Java
+      - name: Upload allure results
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: allure-results
+          retention-days: 10
+
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: microsoft
@@ -137,17 +76,15 @@ jobs:
 
       - name: Install Allure
         run: |
-          sudo wget https://github.com/allure-framework/allure2/releases/download/2.34.0/allure-2.34.0.tgz
-          sudo tar -zxvf allure-2.34.0.tgz -C /opt/
-          sudo ln -s /opt/allure-2.34.0/bin/allure /usr/bin/allure
+          wget https://github.com/allure-framework/allure2/releases/download/2.34.0/allure-2.34.0.tgz
+          tar -zxvf allure-2.34.0.tgz
+          sudo mv allure-2.34.0 /opt/allure
+          sudo ln -s /opt/allure/bin/allure /usr/bin/allure
 
-      - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v4
+      - name: Generate Allure report
+        run: allure generate allure-results -c -o _site
 
-      - name: Generate report
-        run: allure generate -c allure-results -o _site
-
-      - name: Save allure report
+      - name: Upload Allure report
         uses: actions/upload-artifact@v4
         with:
           name: _site
@@ -155,15 +92,18 @@ jobs:
           retention-days: 10
 
   publish-report:
-    name: Report publication
+    name: Publish report to GitHub Pages
     runs-on: ubuntu-latest
     needs: run-tests
+
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
