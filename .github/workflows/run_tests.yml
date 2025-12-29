@@ -21,9 +21,8 @@ permissions:
 
 jobs:
   download-history:
-    name: Download history
     runs-on: ubuntu-latest
-
+    name: Download history
     steps:
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -32,75 +31,42 @@ jobs:
 
       - name: Download artifacts
         run: |
-          ARTIFACT_ID=$(curl -s \
-            -H "Accept: application/vnd.github+json" \
+          ARTIFACT_ID=$(curl -s -L -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
             "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts?name=allure-results" \
-            | python - <<'PY'
-          import json, sys
-          artifacts = json.load(sys.stdin).get("artifacts", [])
-          valid = [a for a in artifacts if not a["expired"]]
-          print(valid[0]["id"] if valid else "")
-          PY
-          )
+            | python -c "import sys, json; a=json.load(sys.stdin)['artifacts']; print(a[0]['id'] if a else '')")
 
-          if [ -n "$ARTIFACT_ID" ]; then
-            curl -L \
-              -H "Accept: application/vnd.github+json" \
-              -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-              "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts/${ARTIFACT_ID}/zip" \
-              -o artifacts.zip
+          if [ -z "$ARTIFACT_ID" ]; then
+            echo "No allure-results artifact found, skipping download."
           else
-            echo "No valid allure-results artifact found"
+            curl -L -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
+              "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts/$ARTIFACT_ID/zip" \
+              -o artifacts.zip
           fi
 
-          REPORT_ID=$(curl -s \
-            -H "Accept: application/vnd.github+json" \
+          REPORT_ID=$(curl -s -L -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
             "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts?name=github-pages" \
-            | python - <<'PY'
-          import json, sys
-          artifacts = json.load(sys.stdin).get("artifacts", [])
-          valid = [a for a in artifacts if not a["expired"]]
-          print(valid[0]["id"] if valid else "")
-          PY
-          )
+            | python -c "import sys, json; a=json.load(sys.stdin)['artifacts']; print(a[0]['id'] if a else '')")
 
-          if [ -n "$REPORT_ID" ]; then
-            curl -L \
-              -H "Accept: application/vnd.github+json" \
-              -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
-              "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts/${REPORT_ID}/zip" \
-              -o pages.zip
-          else
-            echo "No valid github-pages artifact found"
-          fi
+          curl -L -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.TOKEN }}" \
+            "https://api.github.com/repos/zenevsky/test_social_testing_project/actions/artifacts/$REPORT_ID/zip" \
+            -o pages.zip
 
       - name: Prepare allure history
         run: |
           mkdir -p allure-results
-
           if [ -f artifacts.zip ]; then
-            if file artifacts.zip | grep -q "Zip archive"; then
-              unzip -o artifacts.zip -d allure-results
-            else
-              echo "artifacts.zip is not a zip, skipping"
-            fi
+            unzip artifacts.zip -d allure-results
           fi
 
-          if [ -f pages.zip ]; then
-            if file pages.zip | grep -q "Zip archive"; then
-              mkdir -p old_pages pages_history
-              unzip -o pages.zip -d old_pages
-              tar -xf old_pages/artifact.tar -C pages_history || true
-
-              if [ -d pages_history/history ]; then
-                cp -r pages_history/history allure-results
-              fi
-            else
-              echo "pages.zip is not a zip, skipping"
-            fi
-          fi
+          mkdir -p old_pages pages_history
+          unzip pages.zip -d old_pages
+          tar -xvf old_pages/artifact.tar -C pages_history
+          cp pages_history/history/* allure-results
+          cp -r pages_history/history allure-results
 
       - name: Store allure history
         uses: actions/upload-artifact@v4
