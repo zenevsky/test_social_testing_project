@@ -20,39 +20,10 @@ permissions:
   id-token: write
 
 jobs:
-  download-history:
-    runs-on: ubuntu-latest
-    name: Download history
-    steps:
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-          
-      - name: Prepare allure history
-        run: |
-          mkdir -p allure-results
-          if [ -f artifacts.zip ]; then
-            unzip artifacts.zip -d allure-results
-          fi
-
-          mkdir -p old_pages pages_history
-          unzip pages.zip -d old_pages
-          tar -xvf old_pages/artifact.tar -C pages_history
-          cp pages_history/history/* allure-results
-          cp -r pages_history/history allure-results
-
-      - name: Store allure history
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-results
-          path: allure-results
-          retention-days: 10
 
   run-tests:
     runs-on: ubuntu-latest
     name: Run autotests
-    needs: download-history
     steps:
       - name: Checkout autotests
         uses: actions/checkout@v4
